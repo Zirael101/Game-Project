@@ -15,7 +15,7 @@
 *.user
 *.userprefs
 
-# Blender (çok önemli!)
+# Blender 
 *.blend1
 *.blend1.meta
 
