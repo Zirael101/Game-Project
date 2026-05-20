@@ -22,7 +22,6 @@ public class GroundSpawner : MonoBehaviour
             return;
         }
 
-        // Başlangıçta 5 tane zemin oluştur
         for (int i = 0; i < initialGroundCount; i++)
         {
             SpawnGround();
@@ -33,13 +32,11 @@ public class GroundSpawner : MonoBehaviour
     {
         if (player == null || groundPrefab == null) return;
 
-        // Player arkadaki zemine geldiyse yeni zemin ekle
         if (player.position.z + 30 > spawnZ - groundLength)
         {
             SpawnGround();
         }
 
-        // Arkada kalan zemini sil
         for (int i = activeGrounds.Count - 1; i >= 0; i--)
         {
             if (activeGrounds[i] != null &&
@@ -58,6 +55,6 @@ public class GroundSpawner : MonoBehaviour
         activeGrounds.Add(newGround);
         spawnZ += groundLength;
 
-        Debug.Log("Zemin oluşturuldu: " + spawnPosition); // Test için
+        Debug.Log("Zemin oluşturuldu: " + spawnPosition); 
     }
 }
