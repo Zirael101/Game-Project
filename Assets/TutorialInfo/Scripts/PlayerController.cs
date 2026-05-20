@@ -21,23 +21,19 @@ public class PlayerController : MonoBehaviour
             rb = gameObject.AddComponent<Rigidbody>();
 
         rb.constraints = RigidbodyConstraints.FreezeRotation;
+        rb.velocity = Vector3.forward * runSpeed;
     }
+    void Update() {
+    
+        rb.velocity = new Vector3(0, rb.velocity.y, runSpeed);
 
-    void Update()
-    {
-        // Otomatik ileri koşu
-        transform.Translate(Vector3.forward * runSpeed * Time.deltaTime);
-
-        // Sağa sola hareket (A ve D veya ok tuşları)
         float horizontal = Input.GetAxis("Horizontal");
         Vector3 sideMove = new Vector3(horizontal * sideSpeed * Time.deltaTime, 0, 0);
         transform.Translate(sideMove);
 
-        // Sınırları kontrol et
         float clampedX = Mathf.Clamp(transform.position.x, leftLimit, rightLimit);
         transform.position = new Vector3(clampedX, transform.position.y, transform.position.z);
 
-        // Zıplama (boşluk tuşu)
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
