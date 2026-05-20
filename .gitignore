@@ -22,5 +22,6 @@
 # OS generated files
 .DS_Store
 Thumbs.dbs
-".vs/" 
-".vs/" 
+
+# Visual Studio temp files
+.vs/
