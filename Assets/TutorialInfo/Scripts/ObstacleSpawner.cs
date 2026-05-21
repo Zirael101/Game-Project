@@ -1,57 +1,81 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ObstacleSpawner : MonoBehaviour
 {
-    [Header("Engel Ayarları")]
-    public GameObject[] obstaclePrefabs;
-    public float spawnInterval = 1.5f;
-    public float spawnRangeX = 2f;
-    public float spawnZ = 15f;
-    public float obstacleSpeed = 8f; // Direkt buradan hızı ayarla
+    public GameObject[] obstaclePrefabs; // Farklı engel tipleri
+    public float spawnInterval = 2f;
+    public float moveSpeed = 8f;
 
+    private float[] lanePositions = { -2.5f, 0f, 2.5f };
     private float timer;
-    private bool isSpawning = true;
+    private List<GameObject> obstacles = new List<GameObject>();
 
     void Update()
     {
-        if (!isSpawning) return;
-
         timer += Time.deltaTime;
+
         if (timer >= spawnInterval)
         {
-            SpawnObstacle();
+            SpawnObstacles(); // Çoklu engel oluştur
             timer = 0;
 
-            // Zorluk arttıkça daha sık engel çıkar
-            spawnInterval = Mathf.Max(0.5f, spawnInterval - 0.005f);
+            // Zorluk arttıkça daha sık spawn
+            spawnInterval = Mathf.Max(0.7f, spawnInterval - 0.01f);
+        }
+
+        // Engelleri hareket ettir
+        for (int i = obstacles.Count - 1; i >= 0; i--)
+        {
+            if (obstacles[i] != null)
+            {
+                obstacles[i].transform.Translate(Vector3.back * moveSpeed * Time.deltaTime);
+
+                if (obstacles[i].transform.position.z < -10)
+                {
+                    Destroy(obstacles[i]);
+                    obstacles.RemoveAt(i);
+                }
+            }
         }
     }
 
-    void SpawnObstacle()
+    void SpawnObstacles()
     {
         if (obstaclePrefabs.Length == 0) return;
 
-        int randomIndex = Random.Range(0, obstaclePrefabs.Length);
-        float randomX = Random.Range(-spawnRangeX, spawnRangeX);
-        Vector3 spawnPos = new Vector3(randomX, 0.5f, spawnZ);
+        // KAÇ ENGEL ÇIKACAĞINI RASTGELE SEÇ (1, 2 veya 3)
+        int obstacleCount = Random.Range(1, 4);
 
-        GameObject newObstacle = Instantiate(obstaclePrefabs[randomIndex], spawnPos, Quaternion.identity);
+        // Hangi şeritlerin dolu olduğunu takip et
+        List<int> usedLanes = new List<int>();
 
-        // Engel hareket script'ini ekle ve hızını ata
-        ObstacleMovement movement = newObstacle.AddComponent<ObstacleMovement>();
-        movement.moveSpeed = obstacleSpeed; // Artık burada tanımlı
+        for (int i = 0; i < obstacleCount; i++)
+        {
+            // Kullanılmayan şerit seç
+            int randomLane;
+            do
+            {
+                randomLane = Random.Range(0, 3);
+            }
+            while (usedLanes.Contains(randomLane));
 
-        // 10 saniye sonra yok ol
-        Destroy(newObstacle, 10f);
-    }
+            usedLanes.Add(randomLane);
 
-    public void StopSpawning()
-    {
-        isSpawning = false;
-    }
+            // Rastgele engel tipi seç
+            int randomObstacle = Random.Range(0, obstaclePrefabs.Length);
 
-    public void StartSpawning()
-    {
-        isSpawning = true;
+            // Engel pozisyonu
+            Vector3 pos = new Vector3(lanePositions[randomLane], 0.5f, 15f);
+
+            // Engel oluştur
+            GameObject newObstacle = Instantiate(obstaclePrefabs[randomObstacle], pos, Quaternion.identity);
+            obstacles.Add(newObstacle);
+
+            // 6 saniye sonra yok et
+            Destroy(newObstacle, 6f);
+        }
+
+        Debug.Log("🚧 " + obstacleCount + " engel oluştu! Şeritler: " + string.Join(",", usedLanes));
     }
 }
