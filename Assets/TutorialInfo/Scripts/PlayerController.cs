@@ -3,9 +3,8 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [Header("Hareket Ayarları")]
-    public float runSpeed = 5f;
-    public float sideSpeed = 5f;
-    public float jumpForce = 5f;
+    public float sideSpeed = 6f;
+    public float jumpForce = 6f;
 
     [Header("Sınırlar")]
     public float leftLimit = -2.5f;
@@ -17,28 +16,52 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        if (rb == null)
-            rb = gameObject.AddComponent<Rigidbody>();
-
-        rb.constraints = RigidbodyConstraints.FreezeRotation;
-        rb.velocity = Vector3.forward * runSpeed;
+        // Karakterin Z ekseninde hareket etmesini ENGELLE
+        rb.constraints = RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
     }
-    void Update() {
-    
-        rb.velocity = new Vector3(0, rb.velocity.y, runSpeed);
 
+    void Update()
+    {
+        // Sağa/sola hareket
         float horizontal = Input.GetAxis("Horizontal");
-        Vector3 sideMove = new Vector3(horizontal * sideSpeed * Time.deltaTime, 0, 0);
-        transform.Translate(sideMove);
+        transform.Translate(Vector3.right * horizontal * sideSpeed * Time.deltaTime);
 
-        float clampedX = Mathf.Clamp(transform.position.x, leftLimit, rightLimit);
-        transform.position = new Vector3(clampedX, transform.position.y, transform.position.z);
+        // Sınırları kontrol et (çok sağa/sola gitmesin)
+        float x = Mathf.Clamp(transform.position.x, leftLimit, rightLimit);
+        transform.position = new Vector3(x, transform.position.y, transform.position.z);
 
+        // Zıplama
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             isGrounded = false;
         }
+    }
+
+    // Önce bir event tanımla (başka script'lerin haberi olsun)
+    public delegate void GameOverHandler();
+    public static event GameOverHandler OnGameOver;
+
+    // Sonra OnTriggerEnter metodunu ekle
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Obstacle"))
+        {
+            GameOver();
+        }
+    }
+
+    void GameOver()
+    {
+        Debug.Log("💀 Oyun Bitti!");
+
+        // Oyunu durdur
+        Time.timeScale = 0f;
+
+        // Event'i tetikle (başka script'ler haberdar olsun)
+        OnGameOver?.Invoke();
+
+        // İstersen burada GameOver paneli açabilirsin
     }
 
     void OnCollisionEnter(Collision collision)

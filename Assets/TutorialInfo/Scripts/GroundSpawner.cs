@@ -6,55 +6,68 @@ public class GroundSpawner : MonoBehaviour
     [Header("Zemin Ayarları")]
     public GameObject groundPrefab;
     public float groundLength = 20f;
-    public int initialGroundCount = 5;
+    public float moveSpeed = 8f;
 
-    [Header("Takip")]
-    public Transform player;
-
-    private List<GameObject> activeGrounds = new List<GameObject>();
-    private float spawnZ = 0f;
+    private List<GameObject> grounds = new List<GameObject>();
+    private float nextSpawnZ = 0f;
 
     void Start()
     {
         if (groundPrefab == null)
         {
-            Debug.LogError("Ground Prefab atanmamış! Lütfen Prefab'ı sürükleyin.");
+            Debug.LogError("❌ Ground Prefab atanmamış!");
             return;
         }
 
-        for (int i = 0; i < initialGroundCount; i++)
+        // Başlangıçta 5 zemin oluştur (daha fazla)
+        for (int i = 0; i < 5; i++)
         {
             SpawnGround();
         }
+
+        Debug.Log("✅ Başlangıçta " + grounds.Count + " zemin oluşturuldu.");
     }
 
     void Update()
     {
-        if (player == null || groundPrefab == null) return;
-
-        if (player.position.z + 30 > spawnZ - groundLength)
+        // Tüm zeminleri hareket ettir
+        for (int i = grounds.Count - 1; i >= 0; i--)
         {
-            SpawnGround();
+            if (grounds[i] != null)
+            {
+                grounds[i].transform.Translate(Vector3.back * moveSpeed * Time.deltaTime);
+            }
         }
 
-        for (int i = activeGrounds.Count - 1; i >= 0; i--)
+        // Spawn kontrolü: En arkadaki zemin belirli noktaya gelince yeni ekle
+        if (grounds.Count > 0)
         {
-            if (activeGrounds[i] != null &&
-                activeGrounds[i].transform.position.z + groundLength < player.position.z - 20)
+            GameObject lastGround = grounds[grounds.Count - 1];
+            if (lastGround != null && lastGround.transform.position.z < 30) // 30'den küçükse yeni ekle
             {
-                Destroy(activeGrounds[i]);
-                activeGrounds.RemoveAt(i);
+                SpawnGround();
+                Debug.Log("➕ Yeni zemin eklendi! Toplam: " + grounds.Count);
+            }
+        }
+
+        // Çok arkada kalan zemini sil
+        if (grounds.Count > 0)
+        {
+            GameObject firstGround = grounds[0];
+            if (firstGround != null && firstGround.transform.position.z + groundLength < -15)
+            {
+                grounds.RemoveAt(0);
+                Destroy(firstGround);
+                Debug.Log("🗑️ Zemin silindi. Kalan zemin: " + grounds.Count);
             }
         }
     }
 
     void SpawnGround()
     {
-        Vector3 spawnPosition = new Vector3(0, 0, spawnZ);
-        GameObject newGround = Instantiate(groundPrefab, spawnPosition, Quaternion.identity);
-        activeGrounds.Add(newGround);
-        spawnZ += groundLength;
-
-        Debug.Log("Zemin oluşturuldu: " + spawnPosition); 
+        Vector3 pos = new Vector3(0, 0, nextSpawnZ);
+        GameObject newGround = Instantiate(groundPrefab, pos, Quaternion.identity);
+        grounds.Add(newGround);
+        nextSpawnZ += groundLength;
     }
 }
