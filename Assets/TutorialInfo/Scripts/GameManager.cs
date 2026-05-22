@@ -60,15 +60,22 @@ public class GameManager : MonoBehaviour
         isGameOver = true;
         Time.timeScale = 0f;
 
+        if (ScoreManager.Instance != null)
+            ScoreManager.Instance.GameOver();
+
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
 
-        Debug.Log(" Oyun Bitti! R tuşuna bas.");
+        Debug.Log("💀 Oyun Bitti! R tuşuna bas.");
     }
 
     public void RestartGame()
     {
         Time.timeScale = 1f;
+
+        if (ScoreManager.Instance != null)
+            ScoreManager.Instance.Restart();
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
