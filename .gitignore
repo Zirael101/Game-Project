@@ -25,3 +25,4 @@ Thumbs.dbs
 
 # Visual Studio temp files
 .vs/".vs/" 
+".vs/" 
