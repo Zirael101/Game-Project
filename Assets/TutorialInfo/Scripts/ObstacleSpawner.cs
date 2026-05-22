@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 public class ObstacleSpawner : MonoBehaviour
 {
-    public GameObject[] obstaclePrefabs; // Farklı engel tipleri
+    public GameObject[] obstaclePrefabs;
     public float spawnInterval = 2f;
-    public float moveSpeed = 8f;
 
     private float[] lanePositions = { -2.5f, 0f, 2.5f };
     private float timer;
@@ -17,25 +16,26 @@ public class ObstacleSpawner : MonoBehaviour
 
         if (timer >= spawnInterval)
         {
-            SpawnObstacles(); // Çoklu engel oluştur
+            SpawnObstacles();
             timer = 0;
-
-            // Zorluk arttıkça daha sık spawn
-            spawnInterval = Mathf.Max(0.7f, spawnInterval - 0.01f);
+            spawnInterval = 16f / GroundSpawner.moveSpeed;
         }
 
-        // Engelleri hareket ettir
         for (int i = obstacles.Count - 1; i >= 0; i--)
         {
             if (obstacles[i] != null)
             {
-                obstacles[i].transform.Translate(Vector3.back * moveSpeed * Time.deltaTime);
+                obstacles[i].transform.Translate(Vector3.back * GroundSpawner.moveSpeed * Time.deltaTime);
 
-                if (obstacles[i].transform.position.z < -10)
+                if (obstacles[i].transform.position.z < -15f)
                 {
                     Destroy(obstacles[i]);
                     obstacles.RemoveAt(i);
                 }
+            }
+            else
+            {
+                obstacles.RemoveAt(i);
             }
         }
     }
@@ -44,15 +44,12 @@ public class ObstacleSpawner : MonoBehaviour
     {
         if (obstaclePrefabs.Length == 0) return;
 
-        // KAÇ ENGEL ÇIKACAĞINI RASTGELE SEÇ (1, 2 veya 3)
-        int obstacleCount = Random.Range(1, 4);
+        int obstacleCount = Random.Range(1, 3); 
 
-        // Hangi şeritlerin dolu olduğunu takip et
         List<int> usedLanes = new List<int>();
 
         for (int i = 0; i < obstacleCount; i++)
         {
-            // Kullanılmayan şerit seç
             int randomLane;
             do
             {
@@ -61,21 +58,12 @@ public class ObstacleSpawner : MonoBehaviour
             while (usedLanes.Contains(randomLane));
 
             usedLanes.Add(randomLane);
-
-            // Rastgele engel tipi seç
             int randomObstacle = Random.Range(0, obstaclePrefabs.Length);
 
-            // Engel pozisyonu
-            Vector3 pos = new Vector3(lanePositions[randomLane], 0.5f, 15f);
-
-            // Engel oluştur
+            float obstacleY = obstaclePrefabs[randomObstacle].transform.position.y;
+            Vector3 pos = new Vector3(lanePositions[randomLane], obstacleY, 15f);
             GameObject newObstacle = Instantiate(obstaclePrefabs[randomObstacle], pos, Quaternion.identity);
             obstacles.Add(newObstacle);
-
-            // 6 saniye sonra yok et
-            Destroy(newObstacle, 6f);
         }
-
-        Debug.Log("🚧 " + obstacleCount + " engel oluştu! Şeritler: " + string.Join(",", usedLanes));
     }
 }

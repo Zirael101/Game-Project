@@ -4,14 +4,13 @@ using System.Collections.Generic;
 public class GroundSpawner : MonoBehaviour
 {
     public GameObject groundPrefab;
-    public float moveSpeed = 8f;
+    public static float moveSpeed = 8f;
 
     private List<GameObject> grounds = new List<GameObject>();
-    private float nextZ = 0f;
+    private float groundLength = 20f;
 
     void Start()
     {
-        // Başlangıçta 3 zemin oluştur
         for (int i = 0; i < 3; i++)
         {
             SpawnGround();
@@ -20,7 +19,6 @@ public class GroundSpawner : MonoBehaviour
 
     void Update()
     {
-        // Zeminleri hareket ettir
         for (int i = grounds.Count - 1; i >= 0; i--)
         {
             if (grounds[i] != null)
@@ -29,20 +27,32 @@ public class GroundSpawner : MonoBehaviour
             }
         }
 
-        // En arkadaki zemini sil
-        if (grounds.Count > 0 && grounds[0] != null && grounds[0].transform.position.z < -20f)
+        if (grounds.Count > 0 && grounds[0] != null)
         {
-            Destroy(grounds[0]);
-            grounds.RemoveAt(0);
-            SpawnGround();
+            if (grounds[0].transform.position.z < -groundLength)
+            {
+                Destroy(grounds[0]);
+                grounds.RemoveAt(0);
+                SpawnGround(); 
+            }
         }
     }
 
     void SpawnGround()
     {
-        Vector3 pos = new Vector3(0, 0, nextZ);
+        float spawnZ = 0f;
+        if (grounds.Count > 0)
+        {
+            spawnZ = grounds[grounds.Count - 1].transform.position.z + groundLength;
+        }
+
+        Vector3 pos = new Vector3(0, 0, spawnZ);
         GameObject newGround = Instantiate(groundPrefab, pos, Quaternion.identity);
         grounds.Add(newGround);
-        nextZ += 20f;
+    }
+
+    public static void UpdateSpeed(float newSpeed)
+    {
+        moveSpeed = newSpeed;
     }
 }
